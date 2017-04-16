@@ -216,6 +216,7 @@ sub new {
     $self->{btn_print} = Wx::Button->new($self, -1, "Print…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     $self->{btn_send_gcode} = Wx::Button->new($self, -1, "Send to printer", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_auto_layer} = Wx::Button->new($self, -1, "Auto-layer Height", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     #$self->{btn_export_gcode}->SetFont($Slic3r::GUI::small_font);
     #$self->{btn_export_stl}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_print}->Hide;
@@ -259,6 +260,7 @@ sub new {
     });
     EVT_BUTTON($self, $self->{btn_reslice}, \&reslice);
     EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
+    EVT_BUTTON($self, $self->{btn_auto_layer}, \&auto_layer);
     
     if ($self->{htoolbar}) {
         EVT_TOOL($self, TB_ADD, sub { $self->add; });
@@ -454,6 +456,7 @@ sub new {
         $self->{buttons_sizer} = $buttons_sizer;
         $buttons_sizer->AddStretchSpacer(1);
         $buttons_sizer->Add($self->{btn_export_stl}, 0, wxALIGN_RIGHT, 0);
+        $buttons_sizer->Add($self->{btn_auto_layer}, 0, wxALIGN_RIGHT, 0);
         $buttons_sizer->Add($self->{btn_reslice}, 0, wxALIGN_RIGHT, 0);
         $buttons_sizer->Add($self->{btn_print}, 0, wxALIGN_RIGHT, 0);
         $buttons_sizer->Add($self->{btn_send_gcode}, 0, wxALIGN_RIGHT, 0);
@@ -1275,6 +1278,12 @@ sub reslice {
     }
 }
 
+sub auto_layer {
+    # explicitly cancel a previous thread and start a new one.
+    my ($self) = @_;
+    print "auto_layer button pressed.\n";
+}
+
 sub export_gcode {
     my ($self, $output_file) = @_;
     
@@ -1858,14 +1867,14 @@ sub object_list_changed {
         # On MSW
         my $method = $have_objects ? 'Enable' : 'Disable';
         $self->{"btn_$_"}->$method
-            for grep $self->{"btn_$_"}, qw(reset arrange reslice export_gcode export_stl print send_gcode layer_editing);
+            for grep $self->{"btn_$_"}, qw(reset arrange reslice export_gcode export_stl print send_gcode layer_editing auto_layer);
         $self->{"btn_layer_editing"}->Disable if (! $variable_layer_height_allowed);
     }
 
     my $export_in_progress = $self->{export_gcode_output_file} || $self->{send_gcode_file};
     my $method = ($have_objects && ! $export_in_progress) ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
-        for grep $self->{"btn_$_"}, qw(reslice export_gcode print send_gcode);
+        for grep $self->{"btn_$_"}, qw(reslice export_gcode print send_gcode auto_layer);
 }
 
 sub selection_changed {
