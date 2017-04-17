@@ -1279,9 +1279,17 @@ sub reslice {
 }
 
 sub auto_layer {
-    # explicitly cancel a previous thread and start a new one.
     my ($self) = @_;
     print "auto_layer button pressed.\n";
+    my $test_var = $self->{canvas3D}->{layer_height_edit_last_object_id};
+    print "object_id: $test_var \n";
+    $self->{canvas3D}->layer_editing_enabled(1);
+    $self->{htoolbar}->ToggleTool(TB_LAYER_EDITING, 1);
+    $self->on_layer_editing_toggled(1);
+    # $self->{canvas3D}{print}->get_object($self->{layer_height_edit_last_object_id})->auto_layer_height_profile;    
+    # $self->{canvas3D}->volumes->[$self->{layer_height_edit_last_object_id}]->generate_layer_height_texture(
+    #     $self->{print}->get_object($self->{layer_height_edit_last_object_id}), 1);
+    $self->{canvas3D}->Refresh;
 }
 
 sub export_gcode {
