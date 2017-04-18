@@ -141,6 +141,15 @@ _constant()
             THIS->layer_height_profile_valid = false;
         %};
 
+    void auto_layer_height_profile()
+        %code%{
+            THIS->update_layer_height_profile(THIS->model_object()->layer_height_profile);
+            auto_layer_height_profile(
+                THIS->slicing_parameters(), THIS->model_object()->layer_height_profile);
+            THIS->model_object()->layer_height_profile_valid = true;
+            THIS->layer_height_profile_valid = false;
+        %};
+
     void reset_layer_height_profile();
     
     int ptr()

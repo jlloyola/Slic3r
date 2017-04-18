@@ -119,6 +119,10 @@ extern void adjust_layer_height_profile(
     coordf_t                     band_width,
     LayerHeightEditActionType    action);
 
+extern void auto_layer_height_profile(
+    const SlicingParameters     &slicing_params,
+    std::vector<coordf_t>       &layer_height_profile);
+
 // Produce object layers as pairs of low / high layer boundaries, stored into a linear vector.
 // The object layers are based at z=0, ignoring the raft layers.
 extern std::vector<coordf_t> generate_object_layers(

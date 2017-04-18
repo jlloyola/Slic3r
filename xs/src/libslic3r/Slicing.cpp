@@ -511,6 +511,13 @@ void adjust_layer_height_profile(
 #endif /* _DEBUG */
 }
 
+void auto_layer_height_profile(
+    const SlicingParameters     &slicing_params,
+    std::vector<coordf_t>       &layer_height_profile)
+{
+    printf("%s\n", "Executed auto_layer_height_profile!");
+}
+
 // Produce object layers as pairs of low / high layer boundaries, stored into a linear vector.
 std::vector<coordf_t> generate_object_layers(
 	const SlicingParameters 	&slicing_params,
