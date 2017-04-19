@@ -1280,9 +1280,7 @@ sub reslice {
 
 sub auto_layer {
     my ($self) = @_;
-    print "auto_layer button pressed.\n";
     my $object_idx_selected = $self->{canvas3D}->_first_selected_object_id;
-    print "object_id: $object_idx_selected \n";
     if ($object_idx_selected != -1) {
         $self->{canvas3D}->layer_editing_enabled(1);
         $self->{htoolbar}->ToggleTool(TB_LAYER_EDITING, 1);

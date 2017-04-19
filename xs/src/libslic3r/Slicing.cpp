@@ -517,7 +517,6 @@ void auto_layer_height_profile(
     const t_layer_height_ranges &layer_height_ranges,
     ModelVolumePtrs volumes)
 {
-    printf("%s\n", "Executed auto_layer_height_profile!");
     std::vector<double> profile_new;
     profile_new = layer_height_profile_adaptive(slicing_params, layer_height_ranges,
         volumes);
