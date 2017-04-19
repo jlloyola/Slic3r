@@ -513,9 +513,15 @@ void adjust_layer_height_profile(
 
 void auto_layer_height_profile(
     const SlicingParameters     &slicing_params,
-    std::vector<coordf_t>       &layer_height_profile)
+    std::vector<coordf_t>       &layer_height_profile,
+    const t_layer_height_ranges &layer_height_ranges,
+    ModelVolumePtrs volumes)
 {
     printf("%s\n", "Executed auto_layer_height_profile!");
+    std::vector<double> profile_new;
+    profile_new = layer_height_profile_adaptive(slicing_params, layer_height_ranges,
+        volumes);
+    layer_height_profile = std::move(profile_new);
 }
 
 // Produce object layers as pairs of low / high layer boundaries, stored into a linear vector.

@@ -145,7 +145,10 @@ _constant()
         %code%{
             THIS->update_layer_height_profile(THIS->model_object()->layer_height_profile);
             auto_layer_height_profile(
-                THIS->slicing_parameters(), THIS->model_object()->layer_height_profile);
+                THIS->slicing_parameters(), 
+                THIS->model_object()->layer_height_profile,
+                THIS->model_object()->layer_height_ranges,
+                THIS->model_object()->volumes);
             THIS->model_object()->layer_height_profile_valid = true;
             THIS->layer_height_profile_valid = false;
         %};
