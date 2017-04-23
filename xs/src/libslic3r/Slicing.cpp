@@ -22,6 +22,7 @@ namespace Slic3r
 
 static const coordf_t MIN_LAYER_HEIGHT = 0.01;
 static const coordf_t MIN_LAYER_HEIGHT_DEFAULT = 0.05;
+static const coordf_t CUSP_VALUE_DEFAULT = 0.2;
 
 // Minimum layer height for the variable layer height algorithm.
 inline coordf_t min_layer_height_from_nozzle(const PrintConfig &print_config, int idx_nozzle)
@@ -38,6 +39,12 @@ inline coordf_t max_layer_height_from_nozzle(const PrintConfig &print_config, in
     coordf_t max_layer_height = print_config.max_layer_height.get_at(idx_nozzle - 1);
     coordf_t nozzle_dmr       = print_config.nozzle_diameter.get_at(idx_nozzle - 1);
     return std::max(min_layer_height, (max_layer_height == 0.) ? (0.75 * nozzle_dmr) : max_layer_height);
+}
+
+// Cusp value for the variable layer height algorithm.
+inline coordf_t cusp_value_from_nozzle(const PrintConfig &print_config, int idx_nozzle)
+{
+    return print_config.cusp_value.get_at(idx_nozzle - 1);
 }
 
 SlicingParameters SlicingParameters::create_from_config(
@@ -70,6 +77,7 @@ SlicingParameters SlicingParameters::create_from_config(
     // Miniumum/maximum of the minimum layer height over all extruders.
     params.min_layer_height = MIN_LAYER_HEIGHT;
     params.max_layer_height = std::numeric_limits<double>::max();
+    params.cusp_value = CUSP_VALUE_DEFAULT;
     if (object_config.support_material.value || params.base_raft_layers > 0) {
         // Has some form of support. Add the support layers to the minimum / maximum layer height limits.
         params.min_layer_height = std::max(
@@ -79,14 +87,17 @@ SlicingParameters SlicingParameters::create_from_config(
             max_layer_height_from_nozzle(print_config, object_config.support_material_extruder), 
             max_layer_height_from_nozzle(print_config, object_config.support_material_interface_extruder));
         params.max_suport_layer_height = params.max_layer_height;
+        params.cusp_value = cusp_value_from_nozzle(print_config, object_config.support_material_extruder);
     }
     if (object_extruders.empty()) {
         params.min_layer_height = std::max(params.min_layer_height, min_layer_height_from_nozzle(print_config, 0));
         params.max_layer_height = std::min(params.max_layer_height, max_layer_height_from_nozzle(print_config, 0));
+        params.cusp_value       = cusp_value_from_nozzle(print_config, 0);
     } else {
         for (std::set<size_t>::const_iterator it_extruder = object_extruders.begin(); it_extruder != object_extruders.end(); ++ it_extruder) {
             params.min_layer_height = std::max(params.min_layer_height, min_layer_height_from_nozzle(print_config, *it_extruder));
             params.max_layer_height = std::min(params.max_layer_height, max_layer_height_from_nozzle(print_config, *it_extruder));
+            params.cusp_value       = cusp_value_from_nozzle(print_config, *it_extruder);
         }
     }
     params.min_layer_height = std::min(params.min_layer_height, params.layer_height);
@@ -232,7 +243,8 @@ std::vector<coordf_t> layer_height_profile_adaptive(
     // loop until we have at least one layer and the max slice_z reaches the object height
     //FIXME make it configurable
     // Cusp value: A maximum allowed distance from a corner of a rectangular extrusion to a chrodal line, in mm.
-    const coordf_t cusp_value = 0.2; // $self->config->get_value('cusp_value');
+    // const coordf_t cusp_value = 0.2; // $self->config->get_value('cusp_value');
+    const coordf_t cusp_value = slicing_params.cusp_value; // $self->config->get_value('cusp_value');
 
     std::vector<coordf_t> layer_height_profile;
     layer_height_profile.push_back(0.);

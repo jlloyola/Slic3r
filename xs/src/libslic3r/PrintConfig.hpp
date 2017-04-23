@@ -394,6 +394,7 @@ class PrintConfig : public GCodeConfig
     ConfigOptionFloat               brim_width;
     ConfigOptionBool                complete_objects;
     ConfigOptionBool                cooling;
+    ConfigOptionFloats              cusp_value;
     ConfigOptionFloat               default_acceleration;
     ConfigOptionInt                 disable_fan_first_layers;
     ConfigOptionFloat               duplicate_distance;
@@ -453,6 +454,7 @@ class PrintConfig : public GCodeConfig
         OPT_PTR(brim_width);
         OPT_PTR(complete_objects);
         OPT_PTR(cooling);
+        OPT_PTR(cusp_value);
         OPT_PTR(default_acceleration);
         OPT_PTR(disable_fan_first_layers);
         OPT_PTR(duplicate_distance);

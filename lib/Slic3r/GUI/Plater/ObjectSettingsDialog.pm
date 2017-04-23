@@ -146,12 +146,15 @@ sub _clamp_layer_height
         my $nozzle_dmrs       = $config->get('nozzle_diameter');
         my $min_layer_heights = $config->get('min_layer_height');
         my $max_layer_heights = $config->get('max_layer_height');
+        my $cusp_values       = $config->get('cusp_value');
         my $min_layer_height  = 1000.;
         my $max_layer_height  = 0.;
+        my $cusp_value        = 0.;
         my $max_nozzle_dmr    = 0.;
         for (my $i = 0; $i < int(@{$nozzle_dmrs}); $i += 1) {
             $min_layer_height = $min_layer_heights->[$i] if ($min_layer_heights->[$i] < $min_layer_height);
             $max_layer_height = $max_layer_heights->[$i] if ($max_layer_heights->[$i] > $max_layer_height);
+            $cusp_value       = $cusp_values      ->[$i] if ($cusp_values      ->[$i] != $cusp_value     );
             $max_nozzle_dmr   = $nozzle_dmrs      ->[$i] if ($nozzle_dmrs      ->[$i] > $max_nozzle_dmr  );
         }
         $min_layer_height = 0.005 if ($min_layer_height < 0.005);

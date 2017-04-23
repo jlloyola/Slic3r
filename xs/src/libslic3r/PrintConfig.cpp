@@ -114,6 +114,18 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "cooling!";
     def->default_value = new ConfigOptionBool(true);
 
+    def = this->add("cusp_value", coFloats);
+    def->label = "Cusp Value";
+    def->tooltip = "Adaptive slicing only. This is the maximum allowed distance from a corner of a rectangular extrusion to a chrodal line, in mm.";
+    def->sidetext = "mm";
+    def->cli = "cusp-value=f@";
+    def->min = 0;
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(0.2);
+        def->default_value = opt;
+    }
+
     def = this->add("default_acceleration", coFloat);
     def->label = "Default";
     def->tooltip = "This is the acceleration your printer will be reset to after the role-specific acceleration values are used (perimeter/infill). Set zero to prevent resetting acceleration at all.";
