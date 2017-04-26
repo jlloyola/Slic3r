@@ -1283,7 +1283,11 @@ sub auto_layer {
     my $object_idx_selected = $self->{canvas3D}->_first_selected_object_id;
     if ($object_idx_selected != -1) {
         $self->{canvas3D}->layer_editing_enabled(1);
-        $self->{htoolbar}->ToggleTool(TB_LAYER_EDITING, 1);
+        if ($self->{htoolbar}){
+            $self->{htoolbar}->ToggleTool(TB_LAYER_EDITING, 1);
+        } else {
+            $self->{"btn_layer_editing"}->SetValue(1);
+        }
         $self->on_layer_editing_toggled(1);
         $self->{canvas3D}->{print}->get_object($object_idx_selected)->auto_layer_height_profile;    
         # $self->{canvas3D}->volumes->[$self->{layer_height_edit_last_object_id}]->generate_layer_height_texture(
