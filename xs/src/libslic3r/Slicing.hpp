@@ -23,7 +23,7 @@ struct SlicingParameters
 	SlicingParameters() { memset(this, 0, sizeof(SlicingParameters)); }
 
     static SlicingParameters create_from_config(
-        const PrintConfig       &print_config, 
+        const PrintConfig       &print_config,
         const PrintObjectConfig &object_config,
         coordf_t                 object_height,
         const std::set<size_t>  &object_extruders);
@@ -58,6 +58,7 @@ struct SlicingParameters
     coordf_t    max_layer_height;
     coordf_t    max_suport_layer_height;
     coordf_t    cusp_value;
+    coordf_t    r_size;
 
     // First layer height of the print, this may be used for the first layer of the raft
     // or for the first layer of the print.
@@ -116,7 +117,7 @@ extern void adjust_layer_height_profile(
     const SlicingParameters     &slicing_params,
     std::vector<coordf_t>       &layer_height_profile,
     coordf_t                     z,
-    coordf_t                     layer_thickness_delta, 
+    coordf_t                     layer_thickness_delta,
     coordf_t                     band_width,
     LayerHeightEditActionType    action);
 

@@ -110,11 +110,11 @@ class PrintConfigBase : public virtual ConfigBase
     PrintConfigBase() {
         this->def = &print_config_def;
     };
-    
+
     double min_object_distance() const;
 };
 
-// Slic3r dynamic configuration, used to override the configuration 
+// Slic3r dynamic configuration, used to override the configuration
 // per object, per modification volume or per printing material.
 // The dynamic configuration is also used to store user modifications of the print global parameters,
 // so the modified configuration values may be diffed against the active configuration
@@ -169,7 +169,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
     ConfigOptionBool                support_material_with_sheath;
     ConfigOptionFloatOrPercent      support_material_xy_spacing;
     ConfigOptionFloat               xy_size_compensation;
-    
+
     PrintObjectConfig(bool initialize = true) : StaticPrintConfig() {
         if (initialize)
             this->set_defaults();
@@ -207,7 +207,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         OPT_PTR(support_material_threshold);
         OPT_PTR(support_material_with_sheath);
         OPT_PTR(xy_size_compensation);
-        
+
         return NULL;
     };
 };
@@ -249,7 +249,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
     ConfigOptionFloatOrPercent      top_infill_extrusion_width;
     ConfigOptionInt                 top_solid_layers;
     ConfigOptionFloatOrPercent      top_solid_infill_speed;
-    
+
     PrintRegionConfig(bool initialize = true) : StaticPrintConfig() {
         if (initialize)
             this->set_defaults();
@@ -289,7 +289,7 @@ class PrintRegionConfig : public virtual StaticPrintConfig
         OPT_PTR(top_infill_extrusion_width);
         OPT_PTR(top_solid_infill_speed);
         OPT_PTR(top_solid_layers);
-        
+
         return NULL;
     };
 };
@@ -329,12 +329,12 @@ class GCodeConfig : public virtual StaticPrintConfig
     ConfigOptionBool                use_relative_e_distances;
     ConfigOptionBool                use_volumetric_e;
     ConfigOptionBool                variable_layer_height;
-    
+
     GCodeConfig(bool initialize = true) : StaticPrintConfig() {
         if (initialize)
             this->set_defaults();
     }
-    
+
     virtual ConfigOption* optptr(const t_config_option_key &opt_key, bool create = false) {
         OPT_PTR(before_layer_gcode);
         OPT_PTR(end_gcode);
@@ -369,7 +369,7 @@ class GCodeConfig : public virtual StaticPrintConfig
         OPT_PTR(variable_layer_height);
         return NULL;
     };
-    
+
     std::string get_extrusion_axis() const
     {
         if ((this->gcode_flavor.value == gcfMach3) || (this->gcode_flavor.value == gcfMachinekit)) {
@@ -395,6 +395,7 @@ class PrintConfig : public GCodeConfig
     ConfigOptionBool                complete_objects;
     ConfigOptionBool                cooling;
     ConfigOptionFloats              cusp_value;
+    ConfigOptionFloats              r_size;
     ConfigOptionFloat               default_acceleration;
     ConfigOptionInt                 disable_fan_first_layers;
     ConfigOptionFloat               duplicate_distance;
@@ -439,7 +440,7 @@ class PrintConfig : public GCodeConfig
     ConfigOptionInt                 threads;
     ConfigOptionBools               wipe;
     ConfigOptionFloat               z_offset;
-    
+
     PrintConfig(bool initialize = true) : GCodeConfig(false) {
         if (initialize)
             this->set_defaults();
@@ -455,6 +456,7 @@ class PrintConfig : public GCodeConfig
         OPT_PTR(complete_objects);
         OPT_PTR(cooling);
         OPT_PTR(cusp_value);
+        OPT_PTR(r_size);
         OPT_PTR(default_acceleration);
         OPT_PTR(disable_fan_first_layers);
         OPT_PTR(duplicate_distance);
@@ -499,11 +501,11 @@ class PrintConfig : public GCodeConfig
         OPT_PTR(threads);
         OPT_PTR(wipe);
         OPT_PTR(z_offset);
-        
+
         // look in parent class
         ConfigOption* opt;
         if ((opt = GCodeConfig::optptr(opt_key, create)) != NULL) return opt;
-        
+
         return NULL;
     };
 };
@@ -515,7 +517,7 @@ class HostConfig : public virtual StaticPrintConfig
     ConfigOptionString              octoprint_apikey;
     ConfigOptionString              serial_port;
     ConfigOptionInt                 serial_speed;
-    
+
     HostConfig(bool initialize = true) : StaticPrintConfig() {
         if (initialize)
             this->set_defaults();
@@ -526,7 +528,7 @@ class HostConfig : public virtual StaticPrintConfig
         OPT_PTR(octoprint_apikey);
         OPT_PTR(serial_port);
         OPT_PTR(serial_speed);
-        
+
         return NULL;
     };
 };
@@ -538,8 +540,8 @@ class FullPrintConfig
     public:
     FullPrintConfig(bool initialize = true) :
         PrintObjectConfig(false),
-        PrintRegionConfig(false), 
-        PrintConfig(false), 
+        PrintRegionConfig(false),
+        PrintConfig(false),
         HostConfig(false)
     {
         if (initialize)

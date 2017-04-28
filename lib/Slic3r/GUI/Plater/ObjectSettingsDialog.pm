@@ -23,27 +23,27 @@ sub new {
     $self->{tabpanel} = Wx::Notebook->new($self, -1, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
     $self->{tabpanel}->AddPage($self->{parts} = Slic3r::GUI::Plater::ObjectPartsPanel->new($self->{tabpanel}, model_object => $params{model_object}), "Parts");
     $self->{tabpanel}->AddPage($self->{layers} = Slic3r::GUI::Plater::ObjectDialog::LayersTab->new($self->{tabpanel}), "Layers");
-    
+
     my $buttons = $self->CreateStdDialogButtonSizer(wxOK);
     EVT_BUTTON($self, wxID_OK, sub {
         # validate user input
         return if !$self->{parts}->CanClose;
         return if !$self->{layers}->CanClose;
-        
+
         # notify tabs
         $self->{layers}->Closing;
-        
+
         $self->EndModal(wxID_OK);
         $self->Destroy;
     });
-    
+
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
     $sizer->Add($self->{tabpanel}, 1, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 10);
     $sizer->Add($buttons, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
-    
+
     $self->SetSizer($sizer);
     $self->SetMinSize($self->GetSize);
-    
+
     return $self;
 }
 
@@ -76,16 +76,16 @@ sub new {
     my $class = shift;
     my ($parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize);
-    
+
     my $sizer = Wx::BoxSizer->new(wxVERTICAL);
-    
+
     {
         my $label = Wx::StaticText->new($self, -1, "You can use this section to override the default layer height for parts of this object.",
             wxDefaultPosition, [-1, 40]);
         $label->SetFont(Wx::SystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
         $sizer->Add($label, 0, wxEXPAND | wxALL, 10);
     }
-    
+
     my $grid = $self->{grid} = Wx::Grid->new($self, -1, wxDefaultPosition, wxDefaultSize);
     $sizer->Add($grid, 1, wxEXPAND | wxALL, 10);
     $grid->CreateGrid(0, 3);
@@ -96,7 +96,7 @@ sub new {
     $grid->SetColLabelValue(2, "Layer height (mm)");
     $grid->SetColSize($_, 135) for 0..2;
     $grid->SetDefaultCellAlignment(wxALIGN_CENTRE, wxALIGN_CENTRE);
-    
+
     # load data
     foreach my $range (@{ $self->model_object->layer_height_ranges }) {
         $grid->AppendRows(1);
@@ -104,16 +104,16 @@ sub new {
         $grid->SetCellValue($i, $_, $range->[$_]) for 0..2;
     }
     $grid->AppendRows(1); # append one empty row
-    
+
     EVT_GRID_CELL_CHANGED($grid, sub {
         my ($grid, $event) = @_;
-        
+
         # remove any non-numeric character
         my $value = $grid->GetCellValue($event->GetRow, $event->GetCol);
         $value =~ s/,/./g;
         $value =~ s/[^0-9.]//g;
         $grid->SetCellValue($event->GetRow, $event->GetCol, ($event->GetCol == 2) ? $self->_clamp_layer_height($value) : $value);
-        
+
         # if there's no empty row, let's append one
         for my $i (0 .. $grid->GetNumberRows) {
             if ($i == $grid->GetNumberRows) {
@@ -126,13 +126,13 @@ sub new {
                 last;
             }
         }
-        
+
         $self->{layers_changed} = 1;
     });
-    
+
     $self->SetSizer($sizer);
     $sizer->SetSizeHints($self);
-    
+
     return $self;
 }
 
@@ -147,14 +147,17 @@ sub _clamp_layer_height
         my $min_layer_heights = $config->get('min_layer_height');
         my $max_layer_heights = $config->get('max_layer_height');
         my $cusp_values       = $config->get('cusp_value');
+        my $r_sizes           = $config->get('r_size');
         my $min_layer_height  = 1000.;
         my $max_layer_height  = 0.;
         my $cusp_value        = 0.;
+        my $r_size            = 0.;
         my $max_nozzle_dmr    = 0.;
         for (my $i = 0; $i < int(@{$nozzle_dmrs}); $i += 1) {
             $min_layer_height = $min_layer_heights->[$i] if ($min_layer_heights->[$i] < $min_layer_height);
             $max_layer_height = $max_layer_heights->[$i] if ($max_layer_heights->[$i] > $max_layer_height);
             $cusp_value       = $cusp_values      ->[$i] if ($cusp_values      ->[$i] != $cusp_value     );
+            $r_size           = $r_sizes          ->[$i] if ($r_sizes          ->[$i] != $r_size         );
             $max_nozzle_dmr   = $nozzle_dmrs      ->[$i] if ($nozzle_dmrs      ->[$i] > $max_nozzle_dmr  );
         }
         $min_layer_height = 0.005 if ($min_layer_height < 0.005);
@@ -169,9 +172,9 @@ sub _clamp_layer_height
 
 sub CanClose {
     my $self = shift;
-    
+
     # validate ranges before allowing user to dismiss the dialog
-    
+
     foreach my $range ($self->_get_ranges) {
         my ($min, $max, $height) = @$range;
         if ($max <= $min) {
@@ -188,20 +191,20 @@ sub CanClose {
         }
         # TODO: check for overlapping ranges
     }
-    
+
     return 1;
 }
 
 sub Closing {
     my $self = shift;
-    
+
     # save ranges into the plater object
     $self->model_object->set_layer_height_ranges([ $self->_get_ranges ]);
 }
 
 sub _get_ranges {
     my $self = shift;
-    
+
     my @ranges = ();
     for my $i (0 .. $self->{grid}->GetNumberRows-1) {
         my ($min, $max, $height) = map $self->{grid}->GetCellValue($i, $_), 0..2;

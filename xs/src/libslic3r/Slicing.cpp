@@ -13,7 +13,7 @@
     #define DEBUG
     #define _DEBUG
     #include "SVG.hpp"
-    #undef assert 
+    #undef assert
     #include <cassert>
 #endif
 
@@ -23,6 +23,7 @@ namespace Slic3r
 static const coordf_t MIN_LAYER_HEIGHT = 0.01;
 static const coordf_t MIN_LAYER_HEIGHT_DEFAULT = 0.05;
 static const coordf_t CUSP_VALUE_DEFAULT = 0.2;
+static const coordf_t R_SIZE_DEFAULT = 0.2;
 
 // Minimum layer height for the variable layer height algorithm.
 inline coordf_t min_layer_height_from_nozzle(const PrintConfig &print_config, int idx_nozzle)
@@ -47,14 +48,20 @@ inline coordf_t cusp_value_from_nozzle(const PrintConfig &print_config, int idx_
     return print_config.cusp_value.get_at(idx_nozzle - 1);
 }
 
+// Slice size for the auto layer height algorithm.
+inline coordf_t r_size_from_nozzle(const PrintConfig &print_config, int idx_nozzle)
+{
+    return print_config.r_size.get_at(idx_nozzle - 1);
+}
+
 SlicingParameters SlicingParameters::create_from_config(
-	const PrintConfig 		&print_config, 
+	const PrintConfig 		&print_config,
 	const PrintObjectConfig &object_config,
 	coordf_t				 object_height,
 	const std::set<size_t>  &object_extruders)
 {
-    coordf_t first_layer_height                      = (object_config.first_layer_height.value <= 0) ? 
-        object_config.layer_height.value : 
+    coordf_t first_layer_height                      = (object_config.first_layer_height.value <= 0) ?
+        object_config.layer_height.value :
         object_config.first_layer_height.get_abs_value(object_config.layer_height.value);
     // If object_config.support_material_extruder == 0 resp. object_config.support_material_interface_extruder == 0,
     // print_config.nozzle_diameter.get_at(size_t(-1)) returns the 0th nozzle diameter,
@@ -78,26 +85,30 @@ SlicingParameters SlicingParameters::create_from_config(
     params.min_layer_height = MIN_LAYER_HEIGHT;
     params.max_layer_height = std::numeric_limits<double>::max();
     params.cusp_value = CUSP_VALUE_DEFAULT;
+    params.r_size = R_SIZE_DEFAULT;
     if (object_config.support_material.value || params.base_raft_layers > 0) {
         // Has some form of support. Add the support layers to the minimum / maximum layer height limits.
         params.min_layer_height = std::max(
-            min_layer_height_from_nozzle(print_config, object_config.support_material_extruder), 
+            min_layer_height_from_nozzle(print_config, object_config.support_material_extruder),
             min_layer_height_from_nozzle(print_config, object_config.support_material_interface_extruder));
         params.max_layer_height = std::min(
-            max_layer_height_from_nozzle(print_config, object_config.support_material_extruder), 
+            max_layer_height_from_nozzle(print_config, object_config.support_material_extruder),
             max_layer_height_from_nozzle(print_config, object_config.support_material_interface_extruder));
         params.max_suport_layer_height = params.max_layer_height;
         params.cusp_value = cusp_value_from_nozzle(print_config, object_config.support_material_extruder);
+        params.r_size = r_size_from_nozzle(print_config, object_config.support_material_extruder);
     }
     if (object_extruders.empty()) {
         params.min_layer_height = std::max(params.min_layer_height, min_layer_height_from_nozzle(print_config, 0));
         params.max_layer_height = std::min(params.max_layer_height, max_layer_height_from_nozzle(print_config, 0));
         params.cusp_value       = cusp_value_from_nozzle(print_config, 0);
+        params.r_size           = r_size_from_nozzle(print_config, 0);
     } else {
         for (std::set<size_t>::const_iterator it_extruder = object_extruders.begin(); it_extruder != object_extruders.end(); ++ it_extruder) {
             params.min_layer_height = std::max(params.min_layer_height, min_layer_height_from_nozzle(print_config, *it_extruder));
             params.max_layer_height = std::min(params.max_layer_height, max_layer_height_from_nozzle(print_config, *it_extruder));
             params.cusp_value       = cusp_value_from_nozzle(print_config, *it_extruder);
+            params.r_size           = r_size_from_nozzle(print_config, *it_extruder);
         }
     }
     params.min_layer_height = std::min(params.min_layer_height, params.layer_height);
@@ -173,7 +184,7 @@ std::vector<coordf_t> layer_height_profile_from_ranges(
     ranges_non_overlapping.reserve(layer_height_ranges.size() * 4);
     if (slicing_params.first_object_layer_height_fixed())
         ranges_non_overlapping.push_back(std::pair<t_layer_height_range,coordf_t>(
-            t_layer_height_range(0., slicing_params.first_object_layer_height), 
+            t_layer_height_range(0., slicing_params.first_object_layer_height),
             slicing_params.first_object_layer_height));
     // The height ranges are sorted lexicographically by low / high layer boundaries.
     for (t_layer_height_ranges::const_iterator it_range = layer_height_ranges.begin(); it_range != layer_height_ranges.end(); ++ it_range) {
@@ -239,7 +250,7 @@ std::vector<coordf_t> layer_height_profile_adaptive(
             as.add_mesh(&(*it)->mesh);
     as.prepare();
 
-    // 2) Generate layers using the algorithm of @platsch 
+    // 2) Generate layers using the algorithm of @platsch
     // loop until we have at least one layer and the max slice_z reaches the object height
     //FIXME make it configurable
     // Cusp value: A maximum allowed distance from a corner of a rectangular extrusion to a chrodal line, in mm.
@@ -290,12 +301,12 @@ std::vector<coordf_t> layer_height_profile_adaptive(
             $height = $height - unscale((scale($height)) % (scale($gradation)));
         }
         */
-    
+
         // look for an applicable custom range
         /*
         if (my $range = first { $_->[0] <= $slice_z && $_->[1] > $slice_z } @{$self->layer_height_ranges}) {
             $height = $range->[2];
-    
+
             # if user set custom height to zero we should just skip the range and resume slicing over it
             if ($height == 0) {
                 $slice_z += $range->[1] - $range->[0];
@@ -303,7 +314,7 @@ std::vector<coordf_t> layer_height_profile_adaptive(
             }
         }
         */
-        
+
         layer_height_profile.push_back(slice_z);
         layer_height_profile.push_back(height);
         slice_z += height;
@@ -342,7 +353,7 @@ void adjust_layer_height_profile(
     LayerHeightEditActionType    action)
 {
      // Constrain the profile variability by the 1st layer height.
-    std::pair<coordf_t, coordf_t> z_span_variable = 
+    std::pair<coordf_t, coordf_t> z_span_variable =
         std::pair<coordf_t, coordf_t>(
             slicing_params.first_object_layer_height_fixed() ? slicing_params.first_object_layer_height : 0.,
             slicing_params.object_print_z_height());
@@ -482,7 +493,7 @@ void adjust_layer_height_profile(
         assert(zz <= layer_height_profile[idx]);
 		profile_new.insert(profile_new.end(), layer_height_profile.begin() + idx, layer_height_profile.end());
 	}
-	else if (profile_new[profile_new.size() - 2] + 0.5 * EPSILON < z_span_variable.second) { 
+	else if (profile_new[profile_new.size() - 2] + 0.5 * EPSILON < z_span_variable.second) {
 		profile_new.insert(profile_new.end(), layer_height_profile.end() - 2, layer_height_profile.end());
 	}
     layer_height_profile = std::move(profile_new);
@@ -644,7 +655,7 @@ int generate_layer_height_texture(
             coordf_t intensity = cos(M_PI * 0.7 * (mid - z) / h);
             // Color mapping from layer height to RGB.
             Pointf3 color(
-                intensity * lerp(coordf_t(color1.x), coordf_t(color2.x), t), 
+                intensity * lerp(coordf_t(color1.x), coordf_t(color2.x), t),
                 intensity * lerp(coordf_t(color1.y), coordf_t(color2.y), t),
                 intensity * lerp(coordf_t(color1.z), coordf_t(color2.z), t));
             int row = cell / (cols - 1);
@@ -665,7 +676,7 @@ int generate_layer_height_texture(
             }
         }
         if (level_of_detail_2nd_level) {
-            cell_first = clamp(0, ncells1-1, int(ceil(lo * z_to_cell1))); 
+            cell_first = clamp(0, ncells1-1, int(ceil(lo * z_to_cell1)));
             cell_last  = clamp(0, ncells1-1, int(floor(hi * z_to_cell1)));
             for (int cell = cell_first; cell <= cell_last; ++ cell) {
                 coordf_t idxf = (0.5 * hscale + (h - slicing_params.layer_height)) * coordf_t(palette_raw.size()-1) / hscale;
@@ -676,7 +687,7 @@ int generate_layer_height_texture(
                 const Point3 &color2 = palette_raw[idx2];
                 // Color mapping from layer height to RGB.
                 Pointf3 color(
-                    lerp(coordf_t(color1.x), coordf_t(color2.x), t), 
+                    lerp(coordf_t(color1.x), coordf_t(color2.x), t),
                     lerp(coordf_t(color1.y), coordf_t(color2.y), t),
                     lerp(coordf_t(color1.z), coordf_t(color2.z), t));
                 int row = cell / (cols1 - 1);

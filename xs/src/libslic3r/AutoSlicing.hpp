@@ -15,9 +15,6 @@ public:
     void add_vertex(const stl_vertex *vertex) { m_vertex.push_back(vertex); }
     void sort_vertex();
 
-    float cusp_height(float z, float cusp_value, int &current_facet);
-    float horizontal_facet_distance(float z);
-
 protected:
     SlicingParameters                   m_slicing_params;
     // Collected vertex of all faces, sorted by raising Z.

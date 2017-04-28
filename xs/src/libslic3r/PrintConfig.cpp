@@ -6,9 +6,9 @@ namespace Slic3r {
 PrintConfigDef::PrintConfigDef()
 {
     t_optiondef_map &Options = this->options;
-    
+
     ConfigOptionDef* def;
-    
+
     def = this->add("avoid_crossing_perimeters", coBool);
     def->label = "Avoid crossing perimeters";
     def->tooltip = "Optimize travel moves in order to minimize the crossing of perimeters. This is mostly useful with Bowden extruders which suffer from oozing. This feature slows down both the print and the G-code generation.";
@@ -25,7 +25,7 @@ PrintConfigDef::PrintConfigDef()
         opt->values.push_back(Pointf(0,200));
         def->default_value = opt;
     }
-    
+
     def = this->add("bed_temperature", coInt);
     def->label = "Other layers";
     def->tooltip = "Bed temperature for layers after the first one. Set this to zero to disable bed temperature control commands in the output.";
@@ -119,6 +119,18 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = "Adaptive slicing only. This is the maximum allowed distance from a corner of a rectangular extrusion to a chrodal line, in mm.";
     def->sidetext = "mm";
     def->cli = "cusp-value=f@";
+    def->min = 0;
+    {
+        ConfigOptionFloats* opt = new ConfigOptionFloats();
+        opt->values.push_back(0.2);
+        def->default_value = opt;
+    }
+
+    def = this->add("r_size", coFloats);
+    def->label = "Slice size";
+    def->tooltip = "This is the slice size the auto-slicer will use to determine the complexity of the figure. The higher the number of vertex inside a slice, the higher the complexity. The algorithm will use smaller layer size on complex slices";
+    def->sidetext = "mm";
+    def->cli = "r-size=f@";
     def->min = 0;
     {
         ConfigOptionFloats* opt = new ConfigOptionFloats();
@@ -281,7 +293,7 @@ PrintConfigDef::PrintConfigDef()
         opt->values.push_back(1);
         def->default_value = opt;
     }
-    
+
     def = this->add("extrusion_width", coFloatOrPercent);
     def->label = "Default extrusion width";
     def->category = "Extrusion Width";
@@ -377,10 +389,10 @@ PrintConfigDef::PrintConfigDef()
         opt->values.push_back(0);
         def->default_value = opt;
     }
-    
+
     def = this->add("filament_settings_id", coString);
     def->default_value = new ConfigOptionString("");
-    
+
     def = this->add("fill_angle", coFloat);
     def->label = "Fill angle";
     def->category = "Infill";
@@ -516,7 +528,7 @@ PrintConfigDef::PrintConfigDef()
         opt->values.push_back(200);
         def->default_value = opt;
     }
-    
+
     def = this->add("gap_fill_speed", coFloat);
     def->label = "Gap fill";
     def->category = "Speed";
@@ -772,7 +784,7 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = "Slic3r can upload G-code files to OctoPrint. This field should contain the API Key required for authentication.";
     def->cli = "octoprint-apikey=s";
     def->default_value = new ConfigOptionString("");
-    
+
     def = this->add("octoprint_host", coString);
     def->label = "Host or IP";
     def->tooltip = "Slic3r can upload G-code files to OctoPrint. This field should contain the hostname or IP address of the OctoPrint instance.";
@@ -861,7 +873,7 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("print_settings_id", coString);
     def->default_value = new ConfigOptionString("");
-    
+
     def = this->add("printer_settings_id", coString);
     def->default_value = new ConfigOptionString("");
 
@@ -899,7 +911,7 @@ PrintConfigDef::PrintConfigDef()
         opt->values.push_back(2);
         def->default_value = opt;
     }
-    
+
     def = this->add("retract_layer_change", coBools);
     def->label = "Retract on layer change";
     def->tooltip = "This flag enforces a retraction whenever a Z move is done.";
@@ -1016,7 +1028,7 @@ PrintConfigDef::PrintConfigDef()
     def->enum_labels.push_back("Random");
     def->enum_labels.push_back("Nearest");
     def->enum_labels.push_back("Aligned");
-    def->enum_labels.push_back("Rear"); 
+    def->enum_labels.push_back("Rear");
     def->default_value = new ConfigOptionEnum<SeamPosition>(spAligned);
 
 #if 0
@@ -1086,7 +1098,7 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "skirts=i";
     def->min = 0;
     def->default_value = new ConfigOptionInt(1);
-    
+
     def = this->add("slowdown_below_layer_time", coInt);
     def->label = "Slow down if layer print time is below";
     def->tooltip = "If layer print time is estimated below this number of seconds, print moves speed will be scaled down to extend duration to this value.";
@@ -1372,7 +1384,7 @@ PrintConfigDef::PrintConfigDef()
         opt->values.push_back(200);
         def->default_value = opt;
     }
-    
+
     def = this->add("thin_walls", coBool);
     def->label = "Detect thin walls";
     def->category = "Layers and Perimeters";
@@ -1390,7 +1402,7 @@ PrintConfigDef::PrintConfigDef()
         unsigned int threads = boost::thread::hardware_concurrency();
         def->default_value = new ConfigOptionInt(threads > 0 ? threads : 2);
     }
-    
+
     def = this->add("toolchange_gcode", coString);
     def->label = "Tool change G-code";
     def->tooltip = "This custom code is inserted right before every extruder change. Note that you can use placeholder variables for all Slic3r settings as well as [previous_extruder] and [next_extruder].";
@@ -1504,10 +1516,10 @@ DynamicPrintConfig::normalize() {
                 this->option("support_material_interface_extruder", true)->setInt(extruder);
         }
     }
-    
+
     if (!this->has("solid_infill_extruder") && this->has("infill_extruder"))
         this->option("solid_infill_extruder", true)->setInt(this->option("infill_extruder")->getInt());
-    
+
     if (this->has("spiral_vase") && this->opt<ConfigOptionBool>("spiral_vase", true)->value) {
         {
             // this should be actually done only on the spiral layers instead of all
@@ -1527,7 +1539,7 @@ PrintConfigBase::min_object_distance() const
 {
     double extruder_clearance_radius = this->option("extruder_clearance_radius")->getFloat();
     double duplicate_distance = this->option("duplicate_distance")->getFloat();
-    
+
     // min object distance is max(duplicate_distance, clearance_radius)
     return (this->option("complete_objects")->getBool() && extruder_clearance_radius > duplicate_distance)
         ? extruder_clearance_radius
