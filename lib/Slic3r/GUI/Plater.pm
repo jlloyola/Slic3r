@@ -216,7 +216,8 @@ sub new {
     $self->{btn_print} = Wx::Button->new($self, -1, "Print…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     $self->{btn_send_gcode} = Wx::Button->new($self, -1, "Send to printer", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     $self->{btn_export_stl} = Wx::Button->new($self, -1, "Export STL…", wxDefaultPosition, [-1, 30], wxBU_LEFT);
-    $self->{btn_auto_layer} = Wx::Button->new($self, -1, "Auto-layer Height", wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_slicing_adaptive} = Wx::Button->new($self, -1, "Slicing Adaptive", wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_auto_slicing} = Wx::Button->new($self, -1, "Auto slicing", wxDefaultPosition, [-1, 30], wxBU_LEFT);
     #$self->{btn_export_gcode}->SetFont($Slic3r::GUI::small_font);
     #$self->{btn_export_stl}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_print}->Hide;
@@ -260,7 +261,8 @@ sub new {
     });
     EVT_BUTTON($self, $self->{btn_reslice}, \&reslice);
     EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
-    EVT_BUTTON($self, $self->{btn_auto_layer}, \&auto_layer);
+    EVT_BUTTON($self, $self->{btn_slicing_adaptive}, \&slicing_adaptive);
+    EVT_BUTTON($self, $self->{btn_auto_slicing}, \&auto_slicing);
     
     if ($self->{htoolbar}) {
         EVT_TOOL($self, TB_ADD, sub { $self->add; });
@@ -456,7 +458,8 @@ sub new {
         $self->{buttons_sizer} = $buttons_sizer;
         $buttons_sizer->AddStretchSpacer(1);
         $buttons_sizer->Add($self->{btn_export_stl}, 0, wxALIGN_RIGHT, 0);
-        $buttons_sizer->Add($self->{btn_auto_layer}, 0, wxALIGN_RIGHT, 0);
+        $buttons_sizer->Add($self->{btn_slicing_adaptive}, 0, wxALIGN_RIGHT, 0);
+        $buttons_sizer->Add($self->{btn_auto_slicing}, 0, wxALIGN_RIGHT, 0);
         $buttons_sizer->Add($self->{btn_reslice}, 0, wxALIGN_RIGHT, 0);
         $buttons_sizer->Add($self->{btn_print}, 0, wxALIGN_RIGHT, 0);
         $buttons_sizer->Add($self->{btn_send_gcode}, 0, wxALIGN_RIGHT, 0);
@@ -1278,7 +1281,7 @@ sub reslice {
     }
 }
 
-sub auto_layer {
+sub slicing_adaptive {
     my ($self) = @_;
     my $object_idx_selected = $self->{canvas3D}->_first_selected_object_id;
     if ($object_idx_selected != -1) {
@@ -1289,9 +1292,23 @@ sub auto_layer {
             $self->{"btn_layer_editing"}->SetValue(1);
         }
         $self->on_layer_editing_toggled(1);
-        $self->{canvas3D}->{print}->get_object($object_idx_selected)->auto_layer_height_profile;    
-        # $self->{canvas3D}->volumes->[$self->{layer_height_edit_last_object_id}]->generate_layer_height_texture(
-        #     $self->{print}->get_object($self->{layer_height_edit_last_object_id}), 1);
+        $self->{canvas3D}->{print}->get_object($object_idx_selected)->slicing_adaptive_profile;
+        $self->{canvas3D}->Refresh;
+    }
+}
+
+sub auto_slicing {
+    my ($self) = @_;
+    my $object_idx_selected = $self->{canvas3D}->_first_selected_object_id;
+    if ($object_idx_selected != -1) {
+        $self->{canvas3D}->layer_editing_enabled(1);
+        if ($self->{htoolbar}){
+            $self->{htoolbar}->ToggleTool(TB_LAYER_EDITING, 1);
+        } else {
+            $self->{"btn_layer_editing"}->SetValue(1);
+        }
+        $self->on_layer_editing_toggled(1);
+        $self->{canvas3D}->{print}->get_object($object_idx_selected)->auto_slicing_profile;
         $self->{canvas3D}->Refresh;
     }
 }
@@ -1879,14 +1896,14 @@ sub object_list_changed {
         # On MSW
         my $method = $have_objects ? 'Enable' : 'Disable';
         $self->{"btn_$_"}->$method
-            for grep $self->{"btn_$_"}, qw(reset arrange reslice export_gcode export_stl print send_gcode layer_editing auto_layer);
+            for grep $self->{"btn_$_"}, qw(reset arrange reslice export_gcode export_stl print send_gcode layer_editing slicing_adaptive auto_slicing);
         $self->{"btn_layer_editing"}->Disable if (! $variable_layer_height_allowed);
     }
 
     my $export_in_progress = $self->{export_gcode_output_file} || $self->{send_gcode_file};
     my $method = ($have_objects && ! $export_in_progress) ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
-        for grep $self->{"btn_$_"}, qw(reslice export_gcode print send_gcode auto_layer);
+        for grep $self->{"btn_$_"}, qw(reslice export_gcode print send_gcode slicing_adaptive auto_slicing);
 }
 
 sub selection_changed {

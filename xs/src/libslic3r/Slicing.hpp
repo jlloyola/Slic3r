@@ -121,7 +121,13 @@ extern void adjust_layer_height_profile(
     coordf_t                     band_width,
     LayerHeightEditActionType    action);
 
-extern void auto_layer_height_profile(
+extern void slicing_adaptive_profile(
+    const SlicingParameters     &slicing_params,
+    std::vector<coordf_t>       &layer_height_profile,
+    const t_layer_height_ranges &layer_height_ranges,
+    ModelVolumePtrs volumes);
+
+extern void auto_slicing_profile(
     const SlicingParameters     &slicing_params,
     std::vector<coordf_t>       &layer_height_profile,
     const t_layer_height_ranges &layer_height_ranges,

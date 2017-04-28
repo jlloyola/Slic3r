@@ -2,6 +2,7 @@
 
 #include "Slicing.hpp"
 #include "SlicingAdaptive.hpp"
+#include "AutoSlicing.hpp"
 #include "PrintConfig.hpp"
 #include "Model.hpp"
 
@@ -534,7 +535,7 @@ void adjust_layer_height_profile(
 #endif /* _DEBUG */
 }
 
-void auto_layer_height_profile(
+void slicing_adaptive_profile(
     const SlicingParameters     &slicing_params,
     std::vector<coordf_t>       &layer_height_profile,
     const t_layer_height_ranges &layer_height_ranges,
@@ -544,6 +545,17 @@ void auto_layer_height_profile(
     profile_new = layer_height_profile_adaptive(slicing_params, layer_height_ranges,
         volumes);
     layer_height_profile = std::move(profile_new);
+}
+
+void auto_slicing_profile(
+    const SlicingParameters     &slicing_params,
+    std::vector<coordf_t>       &layer_height_profile,
+    const t_layer_height_ranges &layer_height_ranges,
+    ModelVolumePtrs volumes)
+{
+    // FIXME Implement AutoSlicing here
+    // std::vector<double> profile_new;
+    // layer_height_profile = std::move(profile_new);
 }
 
 // Produce object layers as pairs of low / high layer boundaries, stored into a linear vector.
