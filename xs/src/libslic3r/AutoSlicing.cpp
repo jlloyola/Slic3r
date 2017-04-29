@@ -8,12 +8,67 @@ namespace Slic3r
 void AutoSlicing::clear()
 {
     m_vertex.clear();
+    m_meshes.clear();
+    m_faces.clear();
 }
 
+bool compareVertex(const stl_vertex & v1, const stl_vertex &v2) {
+	//std::cout << v1.z << std::endl;
+	if (v1.z < v2.z) {
+		/*if (v1.x < v2.x){
+			if (v1.y <v1.y)
+		}*/
+		return true;
+	}
+	return false;
+}
+
+
+void AutoSlicing:prepare(const ModelVolumePtrs		&volumes)){ 
+    std::vector<const TriangleMesh>	m_meshes;
+    std::vector<stl_facet> m_faces;
+ // 1) Collect all meshes.
+   for (ModelVolumePtrs::const_iterator it = volumes.begin(); it != volumes.end(); ++ it) {
+        if (! (*it)->modifier)
+	    m_meshes.push_back(*it->mesh);
+        }
+// 2) Collect faces of all meshes.
+    int nfaces_total = 0;
+    for (std::vector<const TriangleMesh>::const_iterator it_mesh = m_meshes.begin(); it_mesh != m_meshes.end(); ++ it_mesh)
+	nfaces_total += (it_mesh)->stl.stats.number_of_facets;
+    
+    m_faces.reserve(nfaces_total);
+    
+    for (std::vector<const TriangleMesh>::const_iterator it_mesh = m_meshes.begin(); it_mesh != m_meshes.end(); ++ it_mesh)
+        for (int i = 0; i < (it_mesh)->stl.stats.number_of_facets; ++ i)
+	    m_faces.push_back((*it_mesh)->stl.facet_start + i);
+
+    int vertex_total = 0;
+// 3) Collect all Vertex.
+	
+    for (size_t iface = 0; iface < m_faces.size(); ++ iface){
+        m_vertex.push_back(m_faces[iface]->vertex[0];
+	m_vertex.push_back(m_faces[iface]->vertex[1];
+	m_vertex.push_back(m_faces[iface]->vertex[2];
+	}		
+}
+	       
+
 void AutoSlicing::sort_vertex()
-{
+{	
+//4 Sort Vertex
+    std::sort(m_vertex.begin(), m_vertex.end(), compareVertex);
+	// Remove Duplicated Vertex
+/*
+	for (j = 0; j < (m_vertex.size() - 1); ++j){
+		if (m_vertex[j] == m_vertex[j + 1])m_vertex.erase(m_vertex.begin() + j);
+		//a.erase(a.begin()+j); 
+	}
+		for (i = m_vertex.begin(); i <100; ++i){
+		std::cout << (*i) << std::endl;
+	}
     // FIXME
-    // sorting algorithm goes here
+    // sorting algorithm goes here */
     return;
 }
 
