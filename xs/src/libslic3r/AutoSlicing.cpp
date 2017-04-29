@@ -139,7 +139,7 @@ std::vector<coordf_t> AutoSlicing::auto_slice()
     // 1) Get the complexity of each r_size-layer
     std::vector<int> r_complexity;
     r_complexity = pre_slicing(
-        m_slicing_params.r_size, 
+        m_slicing_params.r_size,
         m_slicing_params.object_print_z_height(),
         m_vertex);
 
