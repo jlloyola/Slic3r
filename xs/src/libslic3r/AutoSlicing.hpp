@@ -14,6 +14,7 @@ public:
     void set_slicing_parameters(SlicingParameters params) { m_slicing_params = params; }
     void add_vertex(const stl_vertex *vertex) { m_vertex.push_back(vertex); }
     void sort_vertex();
+    std::vector<coordf_t> auto_slice();
 
 protected:
     SlicingParameters                   m_slicing_params;

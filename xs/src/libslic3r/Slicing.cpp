@@ -557,8 +557,8 @@ void auto_slicing_profile(
     AutoSlicing auto_slicing;
     // auto_slicing.add_vertex(vertix);
     // auto_slicing.sort();
-    // std::vector<double> profile_new;
-    // layer_height_profile = std::move(profile_new);
+    std::vector<double> profile_new = auto_slicing.auto_slice();
+    layer_height_profile = std::move(profile_new);
     return;
 }
 
