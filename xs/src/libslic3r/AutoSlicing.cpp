@@ -1,6 +1,7 @@
 #include "libslic3r.h"
 #include "TriangleMesh.hpp"
 #include "AutoSlicing.hpp"
+#include "Model.hpp"
 
 namespace Slic3r
 {
@@ -8,74 +9,70 @@ namespace Slic3r
 void AutoSlicing::clear()
 {
     m_vertex.clear();
-    m_meshes.clear();
-    m_faces.clear();
+   
 }
 
 bool compareVertex(const stl_vertex & v1, const stl_vertex &v2) {
 	//std::cout << v1.z << std::endl;
-	if (v1.z < v2.z) {
-		/*if (v1.x < v2.x){
-			if (v1.y <v1.y)
-		}*/
-		return true;
-	}
+	if (v1.z < v2.z) return true;
+	if (v1.z > v2.z) return false;
+	if (v1.x < v2.x) return true;
+	if (v1.x > v2.x) return false;
+	if (v1.y <v1.y)  return true;
+
 	return false;
 }
 
 
-void AutoSlicing:prepare(const ModelVolumePtrs		&volumes)){ 
-    std::vector<const TriangleMesh>	m_meshes;
-    std::vector<stl_facet> m_faces;
+void AutoSlicing::prepare(const ModelVolumePtrs		&volumes){ 
+	std::vector<const TriangleMesh*>	m_meshes;
+	std::vector<const stl_facet*>		m_faces;
  // 1) Collect all meshes.
-   for (ModelVolumePtrs::const_iterator it = volumes.begin(); it != volumes.end(); ++ it) {
-        if (! (*it)->modifier)
-	    m_meshes.push_back(*it->mesh);
-        }
+	for (ModelVolumePtrs::const_iterator it = volumes.begin(); it != volumes.end(); ++it)
+		if (!(*it)->modifier)
+			m_meshes.push_back(&(*it)->mesh);
+
 // 2) Collect faces of all meshes.
     int nfaces_total = 0;
-    for (std::vector<const TriangleMesh>::const_iterator it_mesh = m_meshes.begin(); it_mesh != m_meshes.end(); ++ it_mesh)
-	nfaces_total += (it_mesh)->stl.stats.number_of_facets;
-    
-    m_faces.reserve(nfaces_total);
-    
-    for (std::vector<const TriangleMesh>::const_iterator it_mesh = m_meshes.begin(); it_mesh != m_meshes.end(); ++ it_mesh)
-        for (int i = 0; i < (it_mesh)->stl.stats.number_of_facets; ++ i)
-	    m_faces.push_back((*it_mesh)->stl.facet_start + i);
+	for (std::vector<const TriangleMesh*>::const_iterator it_mesh = m_meshes.begin(); it_mesh != m_meshes.end(); ++it_mesh)
+		nfaces_total += (*it_mesh)->stl.stats.number_of_facets;
+	m_faces.reserve(nfaces_total);
+	for (std::vector<const TriangleMesh*>::const_iterator it_mesh = m_meshes.begin(); it_mesh != m_meshes.end(); ++it_mesh)
+		for (int i = 0; i < (*it_mesh)->stl.stats.number_of_facets; ++i)
+			m_faces.push_back((*it_mesh)->stl.facet_start + i);
 
-    int vertex_total = 0;
 // 3) Collect all Vertex.
-	
-    for (size_t iface = 0; iface < m_faces.size(); ++ iface){
-        m_vertex.push_back(m_faces[iface]->vertex[0];
-	m_vertex.push_back(m_faces[iface]->vertex[1];
-	m_vertex.push_back(m_faces[iface]->vertex[2];
-	}		
+    
+	for (int iface = 0; iface < m_faces.size(); iface++){
+        m_vertex.push_back(m_faces[iface]->vertex[0]);
+	    m_vertex.push_back(m_faces[iface]->vertex[1]);
+	    m_vertex.push_back(m_faces[iface]->vertex[2]);
+
+    }		
+    return;
 }
 	       
 
 void AutoSlicing::sort_vertex()
 {	
-//4 Sort Vertex
+    //4 Sort Vertex
     std::sort(m_vertex.begin(), m_vertex.end(), compareVertex);
-	// Remove Duplicated Vertex
-/*
-	for (j = 0; j < (m_vertex.size() - 1); ++j){
-		if (m_vertex[j] == m_vertex[j + 1])m_vertex.erase(m_vertex.begin() + j);
-		//a.erase(a.begin()+j); 
+	
+	//5 Remove Duplicated Vertex
+	for (int j = 0; j < (m_vertex.size() - 1); j++){
+		if ((m_vertex[j].x == m_vertex[j + 1].x)
+			&& (m_vertex[j].y == m_vertex[j + 1].y)
+			&& (m_vertex[j].z == m_vertex[j + 1].z)){
+			m_vertex.erase(m_vertex.begin() + j);
+		}
 	}
-		for (i = m_vertex.begin(); i <100; ++i){
-		std::cout << (*i) << std::endl;
-	}
-    // FIXME
-    // sorting algorithm goes here */
     return;
 }
 
 // Breaks down the figure into slices of user-defined size
 // and calculates its complexity (number of vertex contained per slice)
 std::vector<int> pre_slicing(coordf_t r_size, coordf_t object_height,
-    std::vector<const stl_vertex*> &vertex_array)
+    std::vector<const stl_vertex> &vertex_array)
 {
     const coordf_t r_band = r_size / 2;
     int r = 0;
@@ -91,7 +88,7 @@ std::vector<int> pre_slicing(coordf_t r_size, coordf_t object_height,
         // greater than (r*r_size - r_band)
         for (int i = 0; i < vertex_array.size(); i++)
         {
-            if (vertex_array[i]->z >= current_z - r_band)
+            if (vertex_array[i].z >= current_z - r_band)
             {
                 r_min = i;
                 break;
@@ -102,7 +99,7 @@ std::vector<int> pre_slicing(coordf_t r_size, coordf_t object_height,
         // range [r*r_size - r_band, r*r_size + r_band]
         // FIXME vertex are being count twice!
         int j = r_min;
-        while (vertex_array[j]->z <= (current_z + r_band))
+        while (vertex_array[j].z <= (current_z + r_band))
         {
             r_complexity[r] += 1;
             if (j == vertex_array.size()-1)
