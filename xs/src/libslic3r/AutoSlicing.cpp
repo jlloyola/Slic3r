@@ -213,8 +213,12 @@ std::vector<coordf_t> get_auto_layer_height_profile(
     std::cout << "before object_height: " << object_height << std::endl;
     while (current_z < object_height)
     {
-        if (current_z > (r + 1) * r_size)
-            r++;
+		if (current_z > (r + 1) * r_size) {
+			while (current_z > (r + 1) * r_size){
+				std::cout << "r in while " << r << std::endl;
+				r++;
+			}
+		}
         coordf_t height = lerp(
             current_z,                     // x
             r*r_size,                      // x0
