@@ -1292,7 +1292,7 @@ sub slicing_adaptive {
             $self->{"btn_layer_editing"}->SetValue(1);
         }
         $self->on_layer_editing_toggled(1);
-        $self->{canvas3D}->{print}->get_object($self->{layer_height_edit_last_object_id})->reset_layer_height_profile;
+        $self->{canvas3D}->{print}->get_object($object_idx_selected)->reset_layer_height_profile;
         $self->{canvas3D}->{print}->get_object($object_idx_selected)->slicing_adaptive_profile;
         $self->{canvas3D}->Refresh;
     }
@@ -1309,7 +1309,7 @@ sub auto_slicing {
             $self->{"btn_layer_editing"}->SetValue(1);
         }
         $self->on_layer_editing_toggled(1);
-        $self->{canvas3D}->{print}->get_object($self->{layer_height_edit_last_object_id})->reset_layer_height_profile;
+        $self->{canvas3D}->{print}->get_object($object_idx_selected)->reset_layer_height_profile;
         $self->{canvas3D}->{print}->get_object($object_idx_selected)->auto_slicing_profile;
         $self->{canvas3D}->Refresh;
     }

@@ -94,26 +94,26 @@ float SlicingAdaptive::cusp_height(float z, float cusp_value, int &current_facet
 
 			// handle horizontal facets
 			if (m_face_normal_z[ordered_id] > 0.999) {
-				printf("cusp computation, height is reduced from %f\n", height);
+				// printf("cusp computation, height is reduced from %f\n", height);
 				height = z_diff;
-				printf("to %f due to near horizontal facet\n", height);
+				// printf("to %f due to near horizontal facet\n", height);
 			} else if (cusp > z_diff) {
 				if (cusp < height) {
-					printf("cusp computation, height is reduced from %f", height);
+					// printf("cusp computation, height is reduced from %f", height);
 					height = cusp;
-					printf("to %f due to new cusp height\n", height);
+					// printf("to %f due to new cusp height\n", height);
 				}
 			} else {
-				printf("cusp computation, height is reduced from %f", height);
+				// printf("cusp computation, height is reduced from %f", height);
 				height = z_diff;
-				printf("to z-diff: %f\n", height);
+				// printf("to z-diff: %f\n", height);
 			}
 		}
 		// lower height limit due to printer capabilities again
 		height = std::max(height, float(m_slicing_params.min_layer_height));
 	}
 	
-	printf("cusp computation, layer-bottom at z:%f, cusp_value:%f, resulting layer height:%f\n", z, cusp_value, height);
+	// printf("cusp computation, layer-bottom at z:%f, cusp_value:%f, resulting layer height:%f\n", z, cusp_value, height);
 	return height; 
 }
 

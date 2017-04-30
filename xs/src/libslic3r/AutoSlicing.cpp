@@ -86,9 +86,9 @@ std::vector<int> pre_slicing(coordf_t r_size, coordf_t object_height,
 	int r_space;
 	//FIXME HARDCODED
 	std::cout << "object_height " << object_height << std::endl;
-	object_height = 20;
+	// object_height = 20;
 	std::cout << "r_size " << r_size << std::endl;
-	r_size = 1;
+	// r_size = 1;
 	std::cout << "r_size " << r_size << std::endl;
 	std::cout << "object_height " << object_height << std::endl;
 	std::cout << "r_size " << r_size << std::endl;
@@ -106,6 +106,7 @@ std::vector<int> pre_slicing(coordf_t r_size, coordf_t object_height,
 	for (int r = 0; r < r_space; r++)
     {
         coordf_t current_z = coordf_t(r) * r_size;
+        std::cout << "current_z: " << current_z << std::endl;
         // Get the index of the first vertex that has a z component
         // greater than (r*r_size - r_band)
         for (int i = 0; i < vertex_array.size(); i++)
@@ -119,21 +120,27 @@ std::vector<int> pre_slicing(coordf_t r_size, coordf_t object_height,
 
         // Count the number of vertex whose z component falls in the
         // range [r*r_size - r_band, r*r_size + r_band]
-        // FIXME vertex are being count twice!
         int j = r_min;
-		
+        
+        std::cout << "r_min: " << r_min << std::endl; 
+        std::cout << "vertex_array[j].z: " << vertex_array[j].z << std::endl;
+        std::cout << "r_band: " << r_band << std::endl;
         while (vertex_array[j].z <= (current_z + r_band))
         {
             r_complexity[r] += 1;
-            if (j == vertex_array.size()-1)
-				std::cout << "Count" << r_complexity[r] << std::endl;
-				break;
-			
+            if (j == vertex_array.size()-1) {
+                std::cout << "Count" << r_complexity[r] << std::endl;
+                break;
+            }
             else
                 j++;
         }
     }
-	std::cout << "Return Complexity" << std::endl;
+    std::cout << "Return Complexity" << std::endl;
+    for (int k = 0; k < r_complexity.size(); k++)
+        std::cout << "r_complexity: " << r_complexity[k] << std::endl;
+
+    std::cout << "Return Complexity" << std::endl;
     return r_complexity;
 }
 
@@ -160,6 +167,8 @@ std::vector<coordf_t> convert_complexity_to_layer_height(
     // Get max/min complexity (from number of vertex)
     int min_complexity = number_of_vertex;
     int max_complexity = 0;
+    std::cout << "before min_complexity: " << min_complexity << std::endl;
+    std::cout << "before max_complexity: " << max_complexity << std::endl;
     for (int i = 0; i < r_complexity.size(); i++)
     {
         if (r_complexity[i] > max_complexity)
@@ -167,6 +176,8 @@ std::vector<coordf_t> convert_complexity_to_layer_height(
         if (r_complexity[i] < min_complexity)
             min_complexity = r_complexity[i];
     }
+    std::cout << "after min_complexity: " << min_complexity << std::endl;
+    std::cout << "after max_complexity: " << max_complexity << std::endl;
 
     // Convert complexity to layer height using linear interpolation
     for (int i = 0; i < layer_height_complexity.size(); i++)
@@ -178,6 +189,7 @@ std::vector<coordf_t> convert_complexity_to_layer_height(
             coordf_t(min_complexity),  // x1
             max_layer_height           // y1
             );
+        std::cout << "layer_height_complexity: " << layer_height_complexity[i] << std::endl;
     }
     return layer_height_complexity;
 }
@@ -197,6 +209,8 @@ std::vector<coordf_t> get_auto_layer_height_profile(
     // Loop through the entire object height while creating slices
     // from a linear interpolation of the current height and the
     // complexity of its adjacent r_size-layers.
+    std::cout << "before current_z: " << current_z << std::endl;
+    std::cout << "before object_height: " << object_height << std::endl;
     while (current_z < object_height)
     {
         if (current_z > (r + 1) * r_size)
@@ -208,9 +222,29 @@ std::vector<coordf_t> get_auto_layer_height_profile(
             ((r + 1) * r_size),            // x1
             layer_height_complexity[r + 1] // y1
             );
+        layer_height_profile.push_back(current_z);
         layer_height_profile.push_back(height);
         current_z += height;
+        layer_height_profile.push_back(current_z);
+        layer_height_profile.push_back(height);
+        std::cout << "START " << std::endl;
+        std::cout << "height: " << height << std::endl;
+        std::cout << "current_z: " << current_z << std::endl;
+        std::cout << "r: " << r << std::endl;
+        std::cout << "(r+1)*r_size: " << ((r+1)*r_size) << std::endl;
+        std::cout << "layer_height_complexity[r]: " << layer_height_complexity[r] << std::endl;
+        std::cout << "layer_height_complexity[r+1]: " << layer_height_complexity[r+1] << std::endl;
+        std::cout << "END " << std::endl;
     }
+    coordf_t last = std::max(first_object_layer_height, layer_height_profile[layer_height_profile.size() - 2]);
+    layer_height_profile.push_back(last);
+    layer_height_profile.push_back(first_object_layer_height);
+    layer_height_profile.push_back(object_height);
+    layer_height_profile.push_back(first_object_layer_height);
+    std::cout << "last: " << last << std::endl;
+    std::cout << "first_object_layer_height: " << first_object_layer_height << std::endl;
+    std::cout << "object_height: " << object_height << std::endl;
+    std::cout << "first_object_layer_height: " << first_object_layer_height << std::endl;
     return layer_height_profile;
 }
 

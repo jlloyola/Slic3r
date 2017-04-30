@@ -318,9 +318,13 @@ std::vector<coordf_t> layer_height_profile_adaptive(
 
         layer_height_profile.push_back(slice_z);
         layer_height_profile.push_back(height);
+        std::cout << "slice_z: " << slice_z << std::endl;
+        std::cout << "height: " << height << std::endl;
         slice_z += height;
         layer_height_profile.push_back(slice_z);
         layer_height_profile.push_back(height);
+        std::cout << "slice_z: " << slice_z << std::endl;
+        std::cout << "height: " << height << std::endl;
     }
 
     coordf_t last = std::max(slicing_params.first_object_layer_height, layer_height_profile[layer_height_profile.size() - 2]);
@@ -328,6 +332,10 @@ std::vector<coordf_t> layer_height_profile_adaptive(
     layer_height_profile.push_back(slicing_params.first_object_layer_height);
     layer_height_profile.push_back(slicing_params.object_print_z_height());
     layer_height_profile.push_back(slicing_params.first_object_layer_height);
+    std::cout << "last: " << last << std::endl;
+    std::cout << "slicing_params.first_object_layer_height: " << slicing_params.first_object_layer_height << std::endl;
+    std::cout << "slicing_params.object_print_z_height: " << slicing_params.object_print_z_height() << std::endl;
+    std::cout << "slicing_params.first_object_layer_height: " << slicing_params.first_object_layer_height << std::endl;
 
     return layer_height_profile;
 }
