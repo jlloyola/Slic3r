@@ -85,16 +85,17 @@ std::vector<int> pre_slicing(coordf_t r_size, coordf_t object_height,
 	std::cout << "Before Reserve?" << std::endl;
 	int r_space;
 	//FIXME HARDCODED
+	std::cout << "object_height " << object_height << std::endl;
 	object_height = 20;
-	if (r_size = 0) r_size = 1;
+	std::cout << "r_size " << r_size << std::endl;
+	r_size = 1;
+	std::cout << "r_size " << r_size << std::endl;
 	std::cout << "object_height " << object_height << std::endl;
 	std::cout << "r_size " << r_size << std::endl;
 		//FIXME NEED TO VALIDATE THIS
 	r_space = int(std::ceil( object_height / r_size))+1;
 	std::cout << "r_space " << r_space << std::endl;
-	//Hardcoded
-	r_space = 21;
-	std::cout << "r_space " << r_space << std::endl;
+
 	std::cout << "Init r_complexity" << std::endl;
 	std::vector<int> r_complexity(r_space, 0);
 	
@@ -120,12 +121,14 @@ std::vector<int> pre_slicing(coordf_t r_size, coordf_t object_height,
         // range [r*r_size - r_band, r*r_size + r_band]
         // FIXME vertex are being count twice!
         int j = r_min;
-		std::cout << "Count" << std::endl;
+		
         while (vertex_array[j].z <= (current_z + r_band))
         {
             r_complexity[r] += 1;
             if (j == vertex_array.size()-1)
-                break;
+				std::cout << "Count" << r_complexity[r] << std::endl;
+				break;
+			
             else
                 j++;
         }
@@ -228,6 +231,12 @@ std::vector<coordf_t> AutoSlicing::auto_slice()
         m_vertex.size(),
         m_slicing_params.min_layer_height,
         m_slicing_params.max_layer_height);
+	std::cout << "2E" << std::endl;
+	/*std::cout << "r_complexity" << r_complexity << std::endl;
+	for (int ij = 0; ij < r_complexity; ij++) {
+		std::cout << r_complexity[ij] << ", ";
+	}*/
+
 	std::cout << "3S" << std::endl;
     // 3) Get layer profile based on the layer height complexity
     std::vector<coordf_t> layer_height_profile;
