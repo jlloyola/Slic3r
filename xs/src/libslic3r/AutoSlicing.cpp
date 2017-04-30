@@ -12,7 +12,7 @@ void AutoSlicing::clear()
    
 }
 
-bool compareVertex(const stl_vertex & v1, const stl_vertex &v2) {
+bool compareVertex(stl_vertex &v1, stl_vertex &v2) {
 	//std::cout << v1.z << std::endl;
 	if (v1.z < v2.z) return true;
 	if (v1.z > v2.z) return false;
@@ -75,7 +75,7 @@ void AutoSlicing::sort_vertex()
 // Breaks down the figure into slices of user-defined size
 // and calculates its complexity (number of vertex contained per slice)
 std::vector<int> pre_slicing(coordf_t r_size, coordf_t object_height,
-    std::vector<const stl_vertex> &vertex_array)
+    std::vector<stl_vertex> &vertex_array)
 {
 	std::cout << "Pre Slice" << std::endl;
     const coordf_t r_band = r_size / 2;

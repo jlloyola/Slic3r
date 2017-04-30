@@ -556,6 +556,7 @@ void auto_slicing_profile(
     // FIXME Implement AutoSlicing here
     
     AutoSlicing auto_slicing;
+    auto_slicing.set_slicing_parameters(slicing_params);
     
     auto_slicing.prepare(volumes);
     auto_slicing.sort_vertex();
