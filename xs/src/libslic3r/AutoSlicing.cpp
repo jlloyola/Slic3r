@@ -25,6 +25,7 @@ bool compareVertex(const stl_vertex & v1, const stl_vertex &v2) {
 
 
 void AutoSlicing::prepare(const ModelVolumePtrs		&volumes){ 
+	std::cout << "Prepare Begining" << std::endl;
 	std::vector<const TriangleMesh*>	m_meshes;
 	std::vector<const stl_facet*>		m_faces;
  // 1) Collect all meshes.
@@ -42,7 +43,7 @@ void AutoSlicing::prepare(const ModelVolumePtrs		&volumes){
 			m_faces.push_back((*it_mesh)->stl.facet_start + i);
 
 // 3) Collect all Vertex.
-    
+	std::cout << "Collect All Vertex" << std::endl;
 	for (int iface = 0; iface < m_faces.size(); iface++){
         m_vertex.push_back(m_faces[iface]->vertex[0]);
 	    m_vertex.push_back(m_faces[iface]->vertex[1]);
@@ -56,8 +57,9 @@ void AutoSlicing::prepare(const ModelVolumePtrs		&volumes){
 void AutoSlicing::sort_vertex()
 {	
     //4 Sort Vertex
+	std::cout << "Before Sort" << std::endl;
     std::sort(m_vertex.begin(), m_vertex.end(), compareVertex);
-	
+	std::cout << "After Sort" << std::endl;
 	//5 Remove Duplicated Vertex
 	for (int j = 0; j < (m_vertex.size() - 1); j++){
 		if ((m_vertex[j].x == m_vertex[j + 1].x)
@@ -66,6 +68,7 @@ void AutoSlicing::sort_vertex()
 			m_vertex.erase(m_vertex.begin() + j);
 		}
 	}
+	std::cout << "After Duplicate" << std::endl;
     return;
 }
 
@@ -74,13 +77,17 @@ void AutoSlicing::sort_vertex()
 std::vector<int> pre_slicing(coordf_t r_size, coordf_t object_height,
     std::vector<const stl_vertex> &vertex_array)
 {
+	std::cout << "Pre Slice" << std::endl;
     const coordf_t r_band = r_size / 2;
     int r = 0;
     int r_min = 0;
     std::vector<int> r_complexity;
-    r_complexity.reserve(std::ceil(object_height / r_size));
+	std::cout << "Before Reserve?" << std::endl;
+    //r_complexity.reserve(std::ceil(object_height / r_size));
+	std::cout << "After Reserve?" << std::endl;
     // Get the number of vertex per slice "r". The more vertex a slice
     // has, the higher the complexity.
+	std::cout << "Get the number of vertex per slice r" << std::endl;
     for (int r = 0; r < r_complexity.size(); r++)
     {
         coordf_t current_z = coordf_t(r) * r_size;
@@ -99,6 +106,7 @@ std::vector<int> pre_slicing(coordf_t r_size, coordf_t object_height,
         // range [r*r_size - r_band, r*r_size + r_band]
         // FIXME vertex are being count twice!
         int j = r_min;
+		std::cout << "Count" << std::endl;
         while (vertex_array[j].z <= (current_z + r_band))
         {
             r_complexity[r] += 1;
@@ -108,6 +116,7 @@ std::vector<int> pre_slicing(coordf_t r_size, coordf_t object_height,
                 j++;
         }
     }
+	std::cout << "Return Complexity" << std::endl;
     return r_complexity;
 }
 
@@ -120,6 +129,8 @@ coordf_t lerp(coordf_t x, coordf_t x0, coordf_t y0, coordf_t x1, coordf_t y1)
 
 // Convert slice complexity of each r_size-slice to layer complexity
 // using a linear interpolation
+
+
 std::vector<coordf_t> convert_complexity_to_layer_height(
     std::vector<int> &r_complexity,
     int number_of_vertex,
@@ -188,13 +199,14 @@ std::vector<coordf_t> get_auto_layer_height_profile(
 
 std::vector<coordf_t> AutoSlicing::auto_slice()
 {
+	std::cout << "1S" << std::endl;
     // 1) Get the complexity of each r_size-layer
     std::vector<int> r_complexity;
     r_complexity = pre_slicing(
         m_slicing_params.r_size,
         m_slicing_params.object_print_z_height(),
         m_vertex);
-
+	std::cout << "2S" << std::endl;
     // 2) Transform complexity to layer height
     std::vector<coordf_t> layer_height_complexity;
     layer_height_complexity = convert_complexity_to_layer_height(
@@ -202,7 +214,7 @@ std::vector<coordf_t> AutoSlicing::auto_slice()
         m_vertex.size(),
         m_slicing_params.min_layer_height,
         m_slicing_params.max_layer_height);
-
+	std::cout << "3S" << std::endl;
     // 3) Get layer profile based on the layer height complexity
     std::vector<coordf_t> layer_height_profile;
     layer_height_profile =  get_auto_layer_height_profile(
