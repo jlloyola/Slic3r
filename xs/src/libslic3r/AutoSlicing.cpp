@@ -81,14 +81,28 @@ std::vector<int> pre_slicing(coordf_t r_size, coordf_t object_height,
     const coordf_t r_band = r_size / 2;
     int r = 0;
     int r_min = 0;
-    std::vector<int> r_complexity;
+    
 	std::cout << "Before Reserve?" << std::endl;
-    //r_complexity.reserve(std::ceil(object_height / r_size));
+	int r_space;
+	//FIXME HARDCODED
+	object_height = 20;
+	if (r_size = 0) r_size = 1;
+	std::cout << "object_height " << object_height << std::endl;
+	std::cout << "r_size " << r_size << std::endl;
+		//FIXME NEED TO VALIDATE THIS
+	r_space = int(std::ceil( object_height / r_size))+1;
+	std::cout << "r_space " << r_space << std::endl;
+	//Hardcoded
+	r_space = 21;
+	std::cout << "r_space " << r_space << std::endl;
+	std::cout << "Init r_complexity" << std::endl;
+	std::vector<int> r_complexity(r_space, 0);
+	
 	std::cout << "After Reserve?" << std::endl;
     // Get the number of vertex per slice "r". The more vertex a slice
     // has, the higher the complexity.
 	std::cout << "Get the number of vertex per slice r" << std::endl;
-    for (int r = 0; r < r_complexity.size(); r++)
+	for (int r = 0; r < r_space; r++)
     {
         coordf_t current_z = coordf_t(r) * r_size;
         // Get the index of the first vertex that has a z component
@@ -137,8 +151,8 @@ std::vector<coordf_t> convert_complexity_to_layer_height(
     coordf_t min_layer_height,
     coordf_t max_layer_height)
 {
-    std::vector<coordf_t> layer_height_complexity;
-    layer_height_complexity.reserve(r_complexity.size());
+	std::vector<coordf_t> layer_height_complexity(r_complexity.size(), min_layer_height);
+   
 
     // Get max/min complexity (from number of vertex)
     int min_complexity = number_of_vertex;
@@ -156,9 +170,9 @@ std::vector<coordf_t> convert_complexity_to_layer_height(
     {
         layer_height_complexity[i] = lerp(
             coordf_t(r_complexity[i]), // x
-            coordf_t(min_complexity),  // x0
+            coordf_t(max_complexity),  // x0
             min_layer_height,          // y0
-            coordf_t(max_complexity),  // x1
+            coordf_t(min_complexity),  // x1
             max_layer_height           // y1
             );
     }
@@ -222,7 +236,7 @@ std::vector<coordf_t> AutoSlicing::auto_slice()
         m_slicing_params.object_print_z_height(),
         m_slicing_params.first_object_layer_height,
         m_slicing_params.r_size);
-
+	std::cout << "3E" << std::endl;
     return layer_height_profile;
 }
 
