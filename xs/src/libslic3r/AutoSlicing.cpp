@@ -78,7 +78,8 @@ std::vector<int> pre_slicing(coordf_t r_size, coordf_t object_height,
     std::vector<stl_vertex> &vertex_array)
 {
 	//std::cout << "Pre Slice" << std::endl;
-    const coordf_t r_band = r_size / 2;
+	const coordf_t r_band = r_size / 2;
+    //const coordf_t r_band = r_size * 2;
     int r = 0;
     int r_min = 0;
     
@@ -135,7 +136,50 @@ std::vector<int> pre_slicing(coordf_t r_size, coordf_t object_height,
     }
     //std::cout << "Return Complexity" << std::endl;
     for (int k = 0; k < r_complexity.size(); k++)
-        //std::cout << "r_complexity: " << r_complexity[k] << std::endl;
+        std::cout << "r_complexity: " << r_complexity[k] << std::endl;
+
+
+	std::cout << "Average" << std::endl;
+	std::vector<int> r_complexity_L(r_complexity.size(), 0);
+	int average_neighbors, neighborhood, neighbor_counter, neighborhood_vertex;
+	average_neighbors = 1;
+	neighborhood = 1 + (average_neighbors * 2);
+	//std::cout << "neighborhood" << neighborhood << std::endl;
+	for (int i = 0; i < r_complexity.size(); i++) {
+		neighbor_counter = 0;
+		neighborhood_vertex = 0;
+
+		for (int j = 0; j < neighborhood; j++){
+			//std::cout << "(i + j - average_neighbors) " << (i + j - average_neighbors) << std::endl;
+			//std::cout << "(i + j  " << (i + j ) << std::endl;
+			if ((i + j - average_neighbors) >= 0 && ((i + j - average_neighbors) < r_complexity.size())){
+				neighbor_counter++;
+				//std::cout << "i + j" << i + j<< std::endl;
+				//std::cout << "r_complexity[i + j]" << r_complexity[i + j] << std::endl;
+				neighborhood_vertex += r_complexity[i + j - average_neighbors];
+			}
+		}
+		//std::cout << "neighbor_counter" << neighbor_counter << std::endl;
+		//std::cout << "neighborhood_vertex" << neighborhood_vertex << std::endl;
+
+		r_complexity_L[i] = round(double(neighborhood_vertex) / double(neighbor_counter));
+
+	}
+
+
+
+	
+
+	r_complexity = r_complexity_L;
+	std::cout << "r_complexity" << std::endl;
+	for (int i = 0; i < r_complexity.size(); i++) {
+		std::cout << r_complexity[i] << ", ";
+	}
+	std::cout << std::endl;
+
+
+
+
 
     //std::cout << "Return Complexity" << std::endl;
     return r_complexity;
@@ -186,7 +230,7 @@ std::vector<coordf_t> convert_complexity_to_layer_height(
             coordf_t(min_complexity),  // x1
             max_layer_height           // y1
             );
-        //std::cout << "layer_height_complexity: " << layer_height_complexity[i] << std::endl;
+        std::cout << "layer_height_complexity: " << layer_height_complexity[i] << std::endl;
     }
     return layer_height_complexity;
 }
@@ -267,10 +311,10 @@ std::vector<coordf_t> AutoSlicing::auto_slice()
         m_slicing_params.min_layer_height,
         m_slicing_params.max_layer_height);
 	//std::cout << "2E" << std::endl;
-	/*std::cout << "r_complexity" << r_complexity << std::endl;
-	for (int ij = 0; ij < r_complexity; ij++) {
-		std::cout << r_complexity[ij] << ", ";
-	}*/
+//	std::cout << "r_complexity" << r_complexity << std::endl;
+	//for (int ij = 0; ij < r_complexity; ij++) {
+	//	std::cout << r_complexity[ij] << ", ";
+	//}
 
 	//std::cout << "3S" << std::endl;
     // 3) Get layer profile based on the layer height complexity
