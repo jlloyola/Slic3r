@@ -244,8 +244,10 @@ std::vector<coordf_t> get_auto_layer_height_profile(
 {
     std::vector<coordf_t> layer_height_profile;
     layer_height_profile.push_back(0.);
-    layer_height_profile.push_back(first_object_layer_height);
+	layer_height_profile.push_back(first_object_layer_height);
+	
     coordf_t current_z = first_object_layer_height;
+	std::cout << "z:  " << current_z << std::endl;
     int r = 0;
     // Loop through the entire object height while creating slices
     // from a linear interpolation of the current height and the
@@ -256,7 +258,7 @@ std::vector<coordf_t> get_auto_layer_height_profile(
     {
 		if (current_z > (r + 1) * r_size) {
 			while (current_z > (r + 1) * r_size){
-				std::cout << "r in while " << r << std::endl;
+				//std::cout << "r in while " << r << std::endl;
 				r++;
 			}
 		}
@@ -268,9 +270,10 @@ std::vector<coordf_t> get_auto_layer_height_profile(
             layer_height_complexity[r + 1] // y1
             );
         layer_height_profile.push_back(current_z);
-        layer_height_profile.push_back(height);
+		layer_height_profile.push_back(height);
         current_z += height;
         layer_height_profile.push_back(current_z);
+		std::cout << "Z:  " << current_z << std::endl;
         layer_height_profile.push_back(height);
         //std::cout << "START " << std::endl;
         //std::cout << "height: " << height << std::endl;

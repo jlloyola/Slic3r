@@ -586,8 +586,9 @@ std::vector<coordf_t> generate_object_layers(
 
     if (slicing_params.first_object_layer_height_fixed()) {
         out.push_back(0);
-        print_z = slicing_params.first_object_layer_height;
+		print_z = slicing_params.first_object_layer_height;
         out.push_back(print_z);
+		std::cout << "z:  " << print_z << std::endl;
     }
 
     size_t idx_layer_height_profile = 0;
@@ -619,9 +620,10 @@ std::vector<coordf_t> generate_object_layers(
         assert(height > slicing_params.min_layer_height - EPSILON);
         assert(height < slicing_params.max_layer_height + EPSILON);
         out.push_back(print_z);
-        print_z += height;
+		print_z += height;
         slice_z = print_z + 0.5 * slicing_params.min_layer_height;
         out.push_back(print_z);
+		std::cout << "z:  " << print_z << std::endl;
     }
 
     //FIXME Adjust the last layer to align with the top object layer exactly?
