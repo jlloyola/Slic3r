@@ -101,25 +101,14 @@ std::vector<int> pre_slicing(coordf_t r_size, coordf_t object_height,
     // Get the number of vertex per slice "r". The more vertex a slice
     // has, the higher the complexity.
 	//std::cout << "Get the number of vertex per slice r" << std::endl;
+    int j = 0;
 	for (int r = 0; r < r_space; r++)
     {
         coordf_t current_z = coordf_t(r) * r_size;
         //std::cout << "current_z: " << current_z << std::endl;
-        // Get the index of the first vertex that has a z component
-        // greater than (r*r_size - r_band)
-        for (int i = 0; i < vertex_array.size(); i++)
-        {
-            if (vertex_array[i].z >= current_z - r_band)
-            {
-                r_min = i;
-                break;
-            }
-        }
 
         // Count the number of vertex whose z component falls in the
-        // range [r*r_size - r_band, r*r_size + r_band]
-        int j = r_min;
-        
+        // range [r*r_size, (r+1)*r_size]
         //std::cout << "r_min: " << r_min << std::endl; 
         //std::cout << "vertex_array[j].z: " << vertex_array[j].z << std::endl;
         //std::cout << "r_band: " << r_band << std::endl;
